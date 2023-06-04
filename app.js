@@ -1,11 +1,22 @@
 const express = require("express");
 const app = express();
 const https = require("https");
+const bodyParser = require("body-parser");
 
+app.use(bodyParser.urlencoded({extended:true}));
 
 app.get("/", function(req, res) {
 
-    let url = "https://api.openweathermap.org/data/2.5/weather?appid=ccfce67c7ce08c6d483e1c68cd681db0&q=Izmir&units=metric";
+    res.sendFile(__dirname + "/index.html");
+
+})
+
+app.post("/", function(req, res) {
+
+    let appKey = "ccfce67c7ce08c6d483e1c68cd681db0";
+    let unit = "metric";
+    let query = req.body.cityName;
+    let url = "https://api.openweathermap.org/data/2.5/weather?appid=" + appKey + "&q=" + query + "&units=" + unit;
 
     https.get(url, function(response) {
         console.log(response.statusCode);
@@ -13,11 +24,13 @@ app.get("/", function(req, res) {
             let weatherData = JSON.parse(data);
             let temp = weatherData.main.temp;
             let weatherDesc = weatherData.weather[0].description;
-            console.log(weatherDesc);
+            let weatherIcon = weatherData.weather[0].icon;
+            res.write("<h1>The current temperature in " + query + " is " + temp + " degrees Celsius.</h1>")
+            res.write("<h2>The weather is currently " + weatherDesc +".</h2>")
+            res.write("<img src=\"http://openweathermap.org/img/wn/" + weatherIcon + "@2x.png\" />")
+            res.send()
         })
     })
-
-    res.send("Server is up and running.")
 })
 
 
